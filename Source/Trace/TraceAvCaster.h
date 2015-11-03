@@ -73,6 +73,7 @@
 #  define DEBUG_TRACE_INIT_PHASE_3         ;
 #  define DEBUG_TRACE_INIT_PHASE_4         ;
 #  define DEBUG_TRACE_INIT_PHASE_5         ;
+#  define DEBUG_TRACE_HANDLE_CLI_PARAMS    ;
 #  define DEBUG_TRACE_VALIDATE_ENVIRONMENT ;
 #  define DEBUG_TRACE_TOGGLE_CONFIG        ;
 #  define DEBUG_TRACE_SET_CONFIG           ;

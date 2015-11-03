@@ -199,7 +199,7 @@ void Controls::resized()
     presetLabel->setBounds (440, 36, 80, 24);
     previewGroup->setBounds (16, 84, getWidth() - 32, getHeight() - 100);
     //[UserResized] Add your own custom resize handling here..
-if (getHeight() > 1) DBG("Controls::resized() previewGroupW=" + String(getWidth() - 32) + " previewGroupH=" + String(getHeight() - 100)) ;
+if (getHeight() > 1) DBG("Controls::resized() CONTENT_W=" + String(GUI::CONTENT_W) + " CONTENT_H=" + String(GUI::CONTENT_H) + " previewGroupW=" + String(getWidth() - 32) + " previewGroupH=" + String(getHeight() - 100)) ;
     //[/UserResized]
 }
 

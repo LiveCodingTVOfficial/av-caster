@@ -27,10 +27,9 @@
 #  define CONFIGURE_AUDIO_BIN        1
 #  define CONFIGURE_TEXT_BIN         0
 #  define CONFIGURE_INTERSTITIAL_BIN 0
-#  define CONFIGURE_COMPOSITING_BIN  (1 && CONFIGURE_SCREENCAP_BIN && CONFIGURE_CAMERA_BIN)
-#  define CONFIGURE_MUX_BIN          (CONFIGURE_AUDIO_BIN && (CONFIGURE_SCREENCAP_BIN || CONFIGURE_CAMERA_BIN || CONFIGURE_COMPOSITING_BIN))
-#  define CONFIGURE_OUTPUT_BIN       (1 && CONFIGURE_MUX_BIN)
-#  define CONFIGURE_TEES             (1 && CONFIGURE_COMPOSITING_BIN)
+#  define CONFIGURE_MUX_BIN          (1 && CONFIGURE_AUDIO_BIN)
+#  define CONFIGURE_OUTPUT_BIN       (1 && CONFIGURE_MUX_BIN  )
+#  define CONFIGURE_TEES             1
 
 // debugging tweaks and kludges
 #  define FIX_OUTPUT_RESOLUTION_TO_LARGEST_INPUT
@@ -39,17 +38,11 @@
 // #  define FAUX_SCREEN_SRC
 // #  define FAUX_CAMERA_SRC
 // #  define FAUX_AUDIO_SRC
-// #  define FAKE_MUX_ENCODER_SRC_AND_SINK          // isolate compositor from encoder and muxer from output
-// #define FAUX_FULLSCREEN_SINK                     // instatiate FullscreenSink as fakesink
-// #define FAUX_OVERLAY_SINK                        // instatiate OverlaySink    as fakesink
-// #define FAUX_COMPOSITE_SINK                      // instatiate CompositeSink  as fakesink
-// #define FAUX_COMPOSITOR_COMPOSITE_FULLSCREEN_SRC // replace static  srcpad  on fullscreen_thru_queue (nyi)
-// #define FAUX_COMPOSITOR_COMPOSITE_OVERLAY_SRC    // replace static  srcpad  on overlay_thru_queue (nyi)
-// #define FAUX_COMPOSITOR_FULLSCREEN_THRU_SINK     // replace request snkpad  on compositor (nyi)
-// #define FAUX_COMPOSITOR_OVERLAY_THRU_SINK        // replace request snkpad  on compositor (nyi)
-// #ifndef CONFIGURE_SCREENCAP_BIN                // replace ghost   sinkpad on fullscreen-tee
-// #ifndef CONFIGURE_CAMERA_BIN                   // replace ghost   sinkpad on overlay-tee
-// #ifndef CONFIGURE_MUX_BIN                      // replace ghost   srcpad  on composite_thru_queue
+// #  define FAKE_MUX_ENCODER_SRC_AND_SINK // isolate compositor from encoder and muxer from output
+// #  define FAUX_COMPOSITE_SINK           // instatiate CompositeSink  as fakesink
+// if !IsInPipeline(ScreencapBin)          // replace ghost sinkpad on fullscreen_thru_queue
+// if !IsInPipeline(CameraBin)             // replace ghost sinkpad on overlay_thru_queue
+// #ifndef CONFIGURE_MUX_BIN               // replace ghost srcpad  on composite_thru_queue
 
 
 // enable debug features
@@ -125,6 +118,7 @@ namespace GUI
   static const int    PAD                 = 4 ;
   static const int    PAD2                = PAD * 2 ;
   static const int    PAD3                = PAD * 3 ;
+  static const int    PAD4                = PAD * 4 ;
   static const Colour TEXT_BG_COLOR       = Colour(0xFF000000) ;
   static const Colour TEXT_FG_COLOR       = Colour(0xFFBBBBFF) ;
   static const Colour TEXT_CARET_COLOR    = Colour(0xFFFFFFFF) ;
@@ -157,17 +151,15 @@ namespace GUI
   static const String CONTROLS_GUI_ID = "controls-gui" ;
   static const String CONTROLS_TEXT   = "Controls" ;
   static const String PRESETS_TEXT    = "Presets" ;
+  static const int    PREVIEW_X       = PAD4 + PAD4 ;
+  static const int    PREVIEW_Y       = TITLEBAR_H + 64  + PAD4 + PAD2 ;
+  static const int    PREVIEW_W       = CONTENT_W  - 32  - PAD4 - PAD2 ;
+  static const int    PREVIEW_H       = CONTENT_H  - 100 + PAD2 ;
 
   // Config
   static const String CONFIG_GUI_ID          = "config-gui" ;
   static const int    CONFIG_H               = CONTENT_H - 80 ;
   static const int    CONFIG_Y               = WINDOW_H - CONFIG_H - STATUSBAR_H - PAD2 ;
-  static const int    MONITORS_W             = 160 ;
-  static const int    MONITORS_H             = 120 ;
-  static const int    MONITORS_Y             = 504 + TITLEBAR_H ;
-  static const int    FULLSCREEN_MONITOR_X   = 40 ;
-  static const int    OVERLAY_MONITOR_X      = 224 ;
-  static const int    COMPOSITE_MONITOR_X    = 408 ;
   static const String DELETE_BTN_CANCEL_TEXT = "Cancel" ;
   static const String DELETE_BTN_DELETE_TEXT = "Delete" ;
   static const String DELETE_BTN_RESET_TEXT  = "Reset" ;
@@ -189,6 +181,7 @@ namespace GUI
   static const String GST_ADD_ERROR_MSG           = "Error adding static GstElements to the pipeline." ;
   static const String GST_CONFIG_ERROR_MSG        = "Error configuring dynamic GstElements." ;
   static const String GST_XWIN_ERROR_MSG          = "Error attaching gStreamer to native x-window." ;
+  static const String BIN_LINK_ERROR_MSG          = "Error linking GstBins." ;
   static const String AUDIO_CFG_ERROR_MSG         = "Error reading AudioBin config." ;
   static const String OUTPUT_CFG_ERROR_MSG        = "Error reading OutputBin config." ;
   static const String SCREENCAP_INIT_ERROR_MSG    = "Error creating ScreencapBin GstElements." ;
@@ -463,6 +456,23 @@ namespace CONFIG
         pertaining to the gStreamer media backend                 */
 namespace GST
 {
+  static const String SCREEN_BIN_ID       = "screen-bin" ;
+  static const String SCREEN_SOURCE_ID    = "screen-real-source" ;
+  static const String SCREEN_CAPS_ID      = "screen-capsfilter" ;
+  static const String SCREEN_CONV_ID      = "screen-converter" ;
+  static const String SCREEN_QUEUE_ID     = "screen-queue" ;
+  static const String CAMERA_BIN_ID       = "camera-bin" ;
+  static const String CAMERA_SOURCE_ID    = "camera-real-source" ;
+  static const String CAMERA_CAPS_ID      = "camera-capsfilter" ;
+  static const String CAMERA_CONV_ID      = "camera-converter" ;
+  static const String CAMERA_QUEUE_ID     = "camera-queue" ;
+  static const String TEXT_BIN_ID         = "text-bin" ;
+  static const String INTERSTITIAL_BIN_ID = "interstitial-bin" ;
+  static const String COMPOSITOR_BIN_ID   = "compositor-bin" ;
+  static const String AUDIO_BIN_ID        = "audio-bin" ;
+  static const String MUX_BIN_ID          = "mux-bin" ;
+  static const String OUTPUT_BIN_ID       = "output-bin" ;
+
   static const String ALSA_PLUGIN_ID  = "alsasrc" ;
   static const String PULSE_PLUGIN_ID = "pulsesrc" ;
   static const String JACK_PLUGIN_ID  = "jackaudiosrc" ;

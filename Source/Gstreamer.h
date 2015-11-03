@@ -41,13 +41,13 @@ private:
 
   // configuration
   static bool Configure() ;
-  static bool ConfigureTodo() ;
+static bool ConfigureTodo() ;
   static bool ConfigureScreencap() ;
   static bool ConfigureCamera() ;
   static bool ConfigureText() ;
+  static bool ConfigureInterstitial() ;
   static bool ConfigureCompositor() ;
   static bool ConfigureAudio() ;
-  static bool ConfigureInterstitial() ;
   static bool ConfigureMux() ;
   static bool ConfigureOutput() ;
 
@@ -86,6 +86,7 @@ private:
   static GstPad*     NewRequestSrcPad (GstElement* an_element) ;
   static GstPad*     NewRequestPad    (GstElement* an_element , String template_id) ;
   static bool        IsInPipeline     (GstElement* an_element) ;
+  static void        DestroyElement   (GstElement* an_element) ;
   static String      MakeLctvUrl      (String dest) ;
 
 
@@ -97,18 +98,12 @@ private:
   static GstElement* CompositorBin ;
   static GstElement* AudioBin ;
   static GstElement* InterstitialBin ;
-  static GstElement* FullscreenSink ;
-  static GstElement* OverlaySink ;
-  static GstElement* CompositeSink ;
   static GstElement* MuxBin ;
   static GstElement* OutputBin ;
 
   // configuration
   static ValueTree ConfigStore ;
-
-#ifdef FAKE_MUX_ENCODER_SRC_AND_SINK
-static guintptr WindowHandle ;
-#endif // FAKE_MUX_ENCODER_SRC_AND_SINK
+  static guintptr  WindowHandle ;
 } ;
 
 #endif // GSTREAMER_H_INCLUDED
@@ -123,19 +118,16 @@ static guintptr WindowHandle ;
 ?} request sink
 <=> ghost pad link   - (corresponds to number of calls to AddGhostSinkPad() or AddGhostSrcPad())
 <-> request pad link - (corresponds to number of calls to LinkPads())
-                                     ? <-> =>fullscreen_sink_queue-> =>FullscreenSink
-CompositorBin<? <=> =>fullscreen-tee{
-                                     ? <-> =>fullscreen_thru_queue-> <-> ?
-                                                                          }compositor->
-                                     ? <-> =>overlay_thru_queue   -> <-> ?
-CompositorBin<? <=> =>overlay-tee   {
-                                     ? <-> =>overlay_sink_queue   -> =>OverlaySink
+
+CompositorBin<? <=> =>fullscreen_thru_queue-> <-> ?
+                                                   }compositor->
+CompositorBin<? <=> =>overlay_thru_queue   -> <-> ?
 
 ?                                                           ?
  }compositor-> =>capsfilter-> =>converter-> =>composite-tee{
 ?                                                           ?
 
-                                     ? <-> =>composite_sink_queue ->     =>CompositeSink
-                    =>composite-tee {
-                                     ? <-> =>composite_thru_queue -> <=> ?>CompositorBin
+                 ? <-> =>composite_sink_queue ->     =>CompositeSink
+=>composite-tee {
+                 ? <-> =>composite_thru_queue -> <=> ?>CompositorBin
 */

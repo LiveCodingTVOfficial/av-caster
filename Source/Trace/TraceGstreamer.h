@@ -31,13 +31,9 @@
 
 #  define DEBUG_TRACE_GST_INIT_PHASE_2 Trace::TraceState("configuring pipeline") ;
 
-#  define DEBUG_TRACE_GST_INIT_PHASE_3 Trace::TraceState("configuring elements") ;
+#  define DEBUG_TRACE_GST_INIT_PHASE_3 Trace::TraceState("starting pipeline") ;
 
-#  define DEBUG_TRACE_GST_INIT_PHASE_4 Trace::TraceState("attaching native xwindows") ;
-
-#  define DEBUG_TRACE_GST_INIT_PHASE_5 Trace::TraceState("starting pipeline") ;
-
-#  define DEBUG_TRACE_GST_INIT_PHASE_6 Trace::TraceState("Gstreamer ready") ;
+#  define DEBUG_TRACE_GST_INIT_PHASE_4 Trace::TraceState("Gstreamer ready") ;
 
 #  define DEBUG_TRACE_SET_GST_STATE                                                              \
   String element_name = (!!an_element) ? String(gst_element_get_name(an_element)) : "" ;         \
@@ -53,48 +49,43 @@
 
 /* configuration */
 
-#  define DEBUG_TRACE_CONFIG_SCREENCAP                                               \
-  if (is_screencap_enabled)                                                          \
-  {                                                                                  \
-    Trace::TraceState("configuring screencap @ "                       +             \
-                      String(screencap_w) + "x"  + String(screencap_h) +             \
-                      " using "           + plugin_id                  ) ;           \
-    if (IsInPipeline(CameraBin    ) &&                                               \
-       !IsInPipeline(CompositorBin) ) Trace::TraceConfig("adding CompositorBin") ;   \
-  }                                                                                  \
-  else                                                                               \
-  {                                                                                  \
-    Trace::TraceState("bypassing screencap") ;                                       \
-    if (IsInPipeline(ScreencapBin ))  Trace::TraceConfig("removing ScreencapBin" ) ; \
-    if (IsInPipeline(CompositorBin))  Trace::TraceConfig("removing CompositorBin") ; \
-  }
+String dbgEnableText(bool is_enable) { return (is_enable) ? "enabling" : "bypassing" ; }
 
-#  define DEBUG_TRACE_CONFIG_CAMERA                                                  \
-  if (is_camera_enabled)                                                             \
-  {                                                                                  \
-    Trace::TraceState(String("configuring camera '") + device_path               +   \
-                             "' @ "                  + resolution                +   \
-                             " @ "                   + String(framerate) + "fps" +   \
-                             " using "               + plugin_id                 ) ; \
-    if (IsInPipeline(ScreencapBin) &&                                                \
-       !IsInPipeline(CompositorBin) ) Trace::TraceConfig("adding CompositorBin") ;   \
-  }                                                                                  \
-  else                                                                               \
-  {                                                                                  \
-    Trace::TraceState("bypassing camera") ;                                          \
-    if (IsInPipeline(CameraBin    ))  Trace::TraceConfig("removing CameraBin"    ) ; \
-    if (IsInPipeline(CompositorBin))  Trace::TraceConfig("removing CompositorBin") ; \
-  }
+#  define DEBUG_TRACE_CONFIGURE                                                                 \
+  Trace::TraceState(dbgEnableText(is_screencap_enabled   ) + " screencap"   ) ; \
+  Trace::TraceState(dbgEnableText(is_camera_enabled      ) + " camera"      ) ; \
+  Trace::TraceState(dbgEnableText(is_text_enabled        ) + " text"        ) ; \
+  Trace::TraceState(dbgEnableText(is_interstitial_enabled) + " interstitial") ; \
+  Trace::TraceState(dbgEnableText(is_audio_enabled       ) + " audio"       ) ; \
+  Trace::TraceState(dbgEnableText(is_output_enabled      ) + " mux"         ) ;
+
+#  define DEBUG_TRACE_CONFIG_SCREENCAP                                 \
+  Trace::TraceState("configuring screencap @ "                       + \
+                    String(screencap_w) + "x"  + String(screencap_h) + \
+                    " using "           + plugin_id                  ) ;
+
+#  define DEBUG_TRACE_CONFIG_CAMERA                                              \
+  Trace::TraceState(String("configuring camera '") + device_path               + \
+                           "' @ "                  + resolution                + \
+                           " @ "                   + String(framerate) + "fps" + \
+                           " using "               + plugin_id                 ) ;
 
 #  define DEBUG_TRACE_CONFIG_TEXT                                                 \
   Trace::TraceState("configuring text " + CONFIG::TEXT_STYLES   [text_style_n] + \
                     " overlay @ "       + CONFIG::TEXT_POSITIONS[text_pos_n  ] ) ;
 
-#  define DEBUG_TRACE_CONFIG_COMPOSITOR                                         \
-  if (!IsInPipeline(CompositorBin)) Trace::TraceState("bypassing compositor") ; \
-  else Trace::TraceState("configuring compositor @ "                       +    \
-                         String(output_w) + "x" + String(output_h)         +    \
-                         " @ "                  + String(framerate) + "fps")    ;
+#  define DEBUG_TRACE_CONFIG_COMPOSITOR                                              \
+  String fullscreen_source = (IsInPipeline(ScreencapBin)) ? "real" : "faux" ;        \
+  String overlay_source    = (IsInPipeline(CameraBin   )) ? "real" : "faux" ;        \
+  String text_source       = (IsInPipeline(TextBin     )) ? "real" : "faux" ;        \
+  String output_sink       = (IsInPipeline(MuxBin      )) ? "real" : "faux" ;        \
+  Trace::TraceState("configuring compositor @ "                       +              \
+                    String(output_w) + "x" + String(output_h)         +              \
+                    " @ "                  + String(framerate) + "fps") ;            \
+  Trace::TraceConfig("compositor has " + fullscreen_source + " fullscreen source") ; \
+  Trace::TraceConfig("compositor has " + overlay_source    + " overlay source") ;    \
+  Trace::TraceConfig("compositor has " + text_source       + " text source") ;       \
+  Trace::TraceConfig("compositor has " + output_sink       + " output sink") ;
 
 #  define DEBUG_TRACE_CONFIG_AUDIO                                                      \
   String              api_name = CONFIG::AUDIO_APIS[audio_api] ;                        \
@@ -144,13 +135,14 @@
   if (is_err) Trace::TraceError("error adding" + dbg) ;                        \
   else        Trace::TraceConfig("added" + dbg) ;
 
-#  define DEBUG_TRACE_REMOVE_BIN_IN                                            \
-  gchar* id  = gst_element_get_name(a_bin) ; String bin_id = id ; g_free(id) ; \
-  String dbg = " bin '" + bin_id + "' from Pipeline"                           ;
+#  define DEBUG_TRACE_REMOVE_BIN_IN                                                             \
+  bool was_in_pipeline = IsInPipeline(a_bin) ; String bin_id = "detached" ;                     \
+  if (was_in_pipeline) { gchar* id = gst_element_get_name(a_bin) ; bin_id = id ; g_free(id) ; } \
+  String dbg           = " bin '" + bin_id + "' from Pipeline"                                  ;
 
-#  define DEBUG_TRACE_REMOVE_BIN_OUT                      \
-  if (is_err) Trace::TraceError("error removing" + dbg) ; \
-  else        Trace::TraceConfig("removed" + dbg)         ;
+#  define DEBUG_TRACE_REMOVE_BIN_OUT                                           \
+  if (was_in_pipeline) if (is_err) Trace::TraceError("error removing" + dbg) ; \
+                       else        Trace::TraceConfig("removed" + dbg)         ;
 
 #  define DEBUG_TRACE_LINK_ELEMENTS                                                    \
   gchar* id  = gst_element_get_name(source) ; String source_id = id ; g_free(id) ;     \
@@ -209,6 +201,7 @@
 #  define DEBUG_TRACE_GST_INIT_PHASE_5  ;
 #  define DEBUG_TRACE_GST_INIT_PHASE_6  ;
 #  define DEBUG_TRACE_SET_GST_STATE     ;
+#  define DEBUG_TRACE_CONFIGURE         ;
 #  define DEBUG_TRACE_CONFIG_SCREENCAP  ;
 #  define DEBUG_TRACE_CONFIG_CAMERA     ;
 #  define DEBUG_TRACE_CONFIG_TEXT       ;

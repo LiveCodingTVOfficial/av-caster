@@ -78,7 +78,7 @@ void Trace::DumpConfig(ValueTree config_store , String node_desc)
 
     Trace::TraceConfig(dbg) ;
   }
-  else Trace::TraceError("stored config invalid - will not store") ;
+  else Trace::TraceError("config invalid") ;
 }
 
 #endif // DEBUG

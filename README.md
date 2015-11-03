@@ -25,12 +25,12 @@ A command-line solution is the obvious choice for such scenarios but obviously l
 ```
 # NOTE: The debian package will not install on Ubuntu/Trusty because it's gStreamer is outdated.
 
-  # subscribe to the repository
-  $ curl -s https://packagecloud.io/install/repositories/ninjam/av-caster/script.deb.sh | sudo bash
-  $ sudo apt-get update
+# subscribe to the repository
+$ curl -s https://packagecloud.io/install/repositories/ninjam/av-caster/script.deb.sh | sudo bash
+$ sudo apt-get update
 
-  # install the package
-  $ sudo apt-get install av-caster
+# install the package
+$ sudo apt-get install av-caster
 ```
 \* Other debian-based distros can download the [latest .deb package][deb] directly or manually add the AvCaster repo to your apt sources:
 ```
@@ -67,20 +67,20 @@ a [PKGBUILD file][pkgbuild] is included in Builds/Packaging
 # NOTE: AvCaster builds against gStreamer1.0 base libraries
 #           and requires gStreamer version 1.4 or greater to run.
 
-  sudo apt-get install libfreetype6-dev libgstreamer-plugins-base1.0-dev libx11-dev \
+$ sudo apt-get install libfreetype6-dev libgstreamer-plugins-base1.0-dev libx11-dev \
                        libxcursor-dev libxinerama-dev
 ```
 \* Other GNU/Linux: install the corresponding libraries as above for your system
 #### compile
 ```
-  cd Builds/GnuMakefile
-  make CONFIG=Release
-  ./build/av-caster
+$ cd Builds/GnuMakefile
+$ make CONFIG=Release
+$ ./build/av-caster
 ```
 #### runtime dependencies
 \* Debian/Ubuntu:
 ```
-  sudo apt-get install freeglut3 gstreamer1.0-plugins-bad gstreamer1.0-plugins-good    \
+$ sudo apt-get install freeglut3 gstreamer1.0-plugins-bad gstreamer1.0-plugins-good    \
                        gstreamer1.0-plugins-ugly libfreetype6 libgl1-mesa-glx libx11-6 \
                        libxcomposite1 libxcursor1 libxext6 libxinerama1 libxrender1
 ```
