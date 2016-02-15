@@ -146,6 +146,7 @@ namespace APP
   static const int N_COMPOSITOR_INPUTS = StringArray::fromLines(INPUTS).size() ;
 
   // filesystem
+  static const File   BIN_DIR         = File::getSpecialLocation(File::currentExecutableFile       ) ;
   static const File   HOME_DIR        = File::getSpecialLocation(File::userHomeDirectory           ) ;
   static const File   APPDATA_DIR     = File::getSpecialLocation(File::userApplicationDataDirectory) ;
   static const File   VIDEOS_DIR      = File::getSpecialLocation(File::userMoviesDirectory         ) ;
@@ -184,8 +185,8 @@ namespace GUI
   static const int    TITLEBAR_H      = 24 ;
   static const int    WINDOW_W        = 760 - BORDERS_W ;              // jucer 758
   static const int    WINDOW_H        = 788 - BORDERS_W - TITLEBAR_H ; // jucer 762
-  static const String LOGO_IMG_LOC    = "Assets/logo.png" ; // ASSERT: this file exists
   static const int    TITLEBAR_BTNS   = DocumentWindow::minimiseButton | DocumentWindow::closeButton ;
+  static const String LOGO_IMG_LOC    = "logo.png" ; // ASSERT: this file exists in bin dir
   static const String IDLE_TITLE_TEXT = "(Idle)" ;
   static const String FILE_TITLE_TEXT = "(Recording)" ;
   static const String RTMP_TITLE_TEXT = "(Broadcasting)" ;
@@ -604,7 +605,7 @@ namespace CONFIG
 namespace GST
 {
   static const unsigned int MIN_MAJOR_VERSION = 1 ;
-  static const unsigned int MIN_MINOR_VERSION = 4 ;
+  static const unsigned int MIN_MINOR_VERSION = 6 ;
 
   // element IDs
   static const String PIPELINE_ID         = "pipeline" ;

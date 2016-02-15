@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="N9TdTc" name="AvCaster" projectType="guiapp" version="0.15.202"
+<JUCERPROJECT id="N9TdTc" name="AvCaster" projectType="guiapp" version="0.15.203"
               bundleIdentifier="com.bill-auger.AvCaster" includeBinaryInAppConfig="1"
               jucerVersion="3.1.1">
   <MAINGROUP id="EzgwIT" name="AvCaster">
+    <GROUP id="{DE1C214E-4102-FA8B-8CAF-D62B47B246EA}" name="Assets">
+      <FILE id="veRaJj" name="logo-v3-0-128.png" compile="0" resource="1"
+            file="Assets/logo-v3-0-128.png"/>
+      <FILE id="IdqsHk" name="logo-v3-0-24.png" compile="0" resource="1"
+            file="Assets/logo-v3-0-24.png"/>
+    </GROUP>
     <GROUP id="{12F99024-8A51-4F04-3891-07F59C6B6881}" name="Headers">
       <GROUP id="{E5A092F4-256B-C2BA-D268-F46AC54BD85A}" name="Trace">
         <FILE id="DOiEtS" name="Trace.h" compile="0" resource="0" file="Source/Trace/Trace.h"/>
@@ -75,7 +81,7 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX">
+    <XCODE_MAC targetFolder="Builds/MacOSX" smallIcon="IdqsHk" bigIcon="veRaJj">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxSDK="default" osxCompatibility="default" osxArchitecture="default"
                        isDebug="1" optimisation="1" targetName="AvCaster"/>
@@ -88,9 +94,10 @@
         <MODULEPATH id="juce_graphics" path="../juce/modules"/>
         <MODULEPATH id="juce_data_structures" path="../juce/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../juce/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../juce/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
-    <VS2015 targetFolder="Builds/VisualStudio2015">
+    <VS2015 targetFolder="Builds/VisualStudio2015" smallIcon="IdqsHk" bigIcon="veRaJj">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
                        isDebug="1" optimisation="1" targetName="AvCaster"/>
@@ -103,9 +110,10 @@
         <MODULEPATH id="juce_graphics" path="../juce/modules"/>
         <MODULEPATH id="juce_data_structures" path="../juce/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../juce/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../juce/modules"/>
       </MODULEPATHS>
     </VS2015>
-    <VS2008 targetFolder="Builds/VisualStudio2008">
+    <VS2008 targetFolder="Builds/VisualStudio2008" smallIcon="IdqsHk" bigIcon="veRaJj">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" isDebug="1"
                        optimisation="1" targetName="AvCaster"/>
@@ -118,11 +126,12 @@
         <MODULEPATH id="juce_graphics" path="../juce/modules"/>
         <MODULEPATH id="juce_data_structures" path="../juce/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../juce/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../juce/modules"/>
       </MODULEPATHS>
     </VS2008>
     <LINUX_MAKE targetFolder="Builds/Makefile" extraCompilerFlags="&#96;pkg-config --cflags gstreamer-1.0&#96;"
                 extraLinkerFlags="&#96;pkg-config --libs gstreamer-1.0&#96;&#10;&#96;pkg-config --libs gstreamer-video-1.0&#96;"
-                externalLibraries="">
+                externalLibraries="" smallIcon="IdqsHk" bigIcon="veRaJj">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" libraryPath="" isDebug="1" optimisation="1" targetName="av-caster-dbg"/>
         <CONFIGURATION name="Release" libraryPath="" isDebug="0" optimisation="3" targetName="av-caster"/>
@@ -133,6 +142,7 @@
         <MODULEPATH id="juce_graphics" path="../juce/modules"/>
         <MODULEPATH id="juce_data_structures" path="../juce/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../juce/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../juce/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
     <CODEBLOCKS_WINDOWS targetFolder="Builds/CodeBlocksWindows">
@@ -168,6 +178,7 @@
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="1"/>
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="1"/>
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_gui_extra" showAllCode="1" useLocalCopy="1"/>
   </MODULES>
   <JUCEOPTIONS/>
 </JUCERPROJECT>

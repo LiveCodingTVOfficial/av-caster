@@ -16,7 +16,7 @@
 |*|  along with AvCaster.  If not, see <http://www.gnu.org/licenses/>.
 \*/
 
-
+#define TRAY_ICON
 #include "AvCaster.h"
 #include "./Trace/TraceMain.h"
 
@@ -69,6 +69,27 @@ DEBUG_TRACE_SHUTDOWN_OUT
   const String getApplicationVersion()      override { return ProjectInfo::versionString ; }
   bool         moreThanOneInstanceAllowed() override { return false ; }
 
+#ifdef TRAY_ICON
+  class AvCasterTrayIconComponent : public SystemTrayIconComponent
+  {
+  public:
+
+    AvCasterTrayIconComponent(ResizableWindow* main_window) : mainWindow(main_window) {}
+
+    void mouseDown(const MouseEvent& mouse_event)
+    {
+      if      (mouse_event.mods.isLeftButtonDown())
+        mainWindow->setMinimised(!mainWindow->isMinimised()) ;
+      else if (mouse_event.mods.isRightButtonDown()) ;
+// Juce Note: that for detecting popup-menu clicks, you should be using isPopupMenu()
+    }
+
+
+  private:
+
+    ResizableWindow* mainWindow ;
+  } ;
+#endif // TRAY_ICON
 
   //==============================================================================
   /*
@@ -93,7 +114,22 @@ DEBUG_TRACE_SHUTDOWN_OUT
       setTitleBarButtonsRequired(DocumentWindow::allButtons , true) ;
 #endif // JUCE_MAC
       setTitleBarHeight(GUI::TITLEBAR_H) ;
-      setIcon(ImageFileFormat::loadFrom(File(GUI::LOGO_IMG_LOC))) ;
+
+      File icon_file = APP::BIN_DIR.getSiblingFile(GUI::LOGO_IMG_LOC) ;
+      if (icon_file.existsAsFile())
+      {
+#ifndef TRAY_ICON
+//         setIcon(ImageFileFormat::loadFrom(icon_file)) ;
+#else // TRAY_ICON
+        Image icon_image = ImageFileFormat::loadFrom(icon_file) ;
+//         setIcon(icon_image) ;
+
+        trayIcon = new AvCasterTrayIconComponent(this) ;
+        trayIcon->setIconImage(icon_image) ;
+        trayIcon->setIconTooltip("setIconTooltip") ;
+#endif // TRAY_ICON
+      }
+
       centreWithSize(getWidth() , getHeight()) ;
       setVisible(true) ;
     }
@@ -109,6 +145,15 @@ DEBUG_TRACE_SHUTDOWN_OUT
   private:
 
     ScopedPointer<MainContent> mainContent ;
+#ifdef TRAY_ICON
+    ScopedPointer<SystemTrayIconComponent> trayIcon ;
+
+
+    void userTriedToCloseWindow()
+    {
+      JUCEApplicationBase::getInstance()->systemRequestedQuit() ;
+    } // FIXME: this avoids assertion in juce_Component.cpp:737
+#endif // TRAY_ICON
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainWindow)
   } ;
