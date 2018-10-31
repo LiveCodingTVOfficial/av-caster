@@ -4,15 +4,15 @@
 |*|  This file is part of the AvCaster program.
 |*|
 |*|  AvCaster is free software: you can redistribute it and/or modify
-|*|  it under the terms of the GNU Lesser General Public License version 3
+|*|  it under the terms of the GNU General Public License version 3
 |*|  as published by the Free Software Foundation.
 |*|
 |*|  AvCaster is distributed in the hope that it will be useful,
 |*|  but WITHOUT ANY WARRANTY; without even the implied warranty of
 |*|  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-|*|  GNU Lesser General Public License for more details.
+|*|  GNU General Public License for more details.
 |*|
-|*|  You should have received a copy of the GNU Lesser General Public License
+|*|  You should have received a copy of the GNU General Public License
 |*|  along with AvCaster.  If not, see <http://www.gnu.org/licenses/>.
 \*/
 
@@ -27,7 +27,7 @@
 
 /* feature switches */
 
-StringArray DisabledFeatures()
+StringArray DisableFeatures()
 {
   StringArray disabled_features = StringArray() ;
 #  ifdef DISABLE_MEDIA
@@ -62,27 +62,34 @@ StringArray DisabledFeatures()
   return disabled_features ;
 }
 
-#  if TEXT_BIN_NYI && IMAGE_BIN_NYI
-#    define DISABLE_FEATURES \
-  Gstreamer::IsTextEnabled = false ;    \
-  Gstreamer::IsImageEnabled = false     ;
-#  else // TEXT_BIN_NYI && IMAGE_BIN_NYI
-#    if TEXT_BIN_NYI
-#      define DISABLE_FEATURES \
-  Gstreamer::IsTextEnabled = false        ;
-#    endif // TEXT_BIN_NYI
-#    if IMAGE_BIN_NYI
-#      define DISABLE_FEATURES \
-  Gstreamer::IsImageEnabled = false       ;
-#    endif // IMAGE_BIN_NYI
-#  endif // TEXT_BIN_NYI && IMAGE_BIN_NYI
+#  define DEBUG_DISABLE_FEATURES                                                \
+  String dbg = "disabling feature per #define constant '" ;                     \
+  cli_params.removeEmptyStrings() ;                                             \
+  cli_params.addArray(DisableFeatures()) ; cli_params.removeDuplicates(false) ; \
+/*cli_params.mergeArray(DisabledFeatures()) ; // TODO: JUCE 4 feature */        \
+  for (int switch_n = 0 ; switch_n < cli_params.size() ; ++switch_n)            \
+    Trace::TraceState(dbg + cli_params[switch_n] + "'") ;                       \
+  if (TEXT_BIN_NYI ) { Trace::TraceState(dbg + "TEXT_BIN_NYI'" ) ;              \
+                       DisabledFeatures.set(CONFIG::TEXT_ID  , var::null) ; }   \
+  if (IMAGE_BIN_NYI) { Trace::TraceState(dbg + "IMAGE_BIN_NYI'") ;              \
+                       DisabledFeatures.set(CONFIG::IMAGE_ID , var::null) ; }
 
-#  define DEBUG_DISABLE_FEATURES DISABLE_FEATURES                                            \
-  StringArray disabled_features = DisabledFeatures() ;                                       \
-  if (!!disabled_features.size() || !Gstreamer::IsTextEnabled || !Gstreamer::IsImageEnabled) \
-    Trace::TraceState("disabling some features per #define constants") ;                     \
-  CliParams.addArray(disabled_features) ; CliParams.removeDuplicates(false)                  ;
-  // CliParams.mergeArray(DisabledFeatures()) ; // TODO: new feature after upgrade
+
+void SeedIrcNetworks()
+{
+#  if SEED_IRC_NETWORKS
+  AvCaster::SetValue(CONFIG::NETWORK_ID , var(String("irc.debian.org"))) ;
+  AvCaster::SetValue(CONFIG::PORT_ID    , var(6667                    )) ;
+  AvCaster::SetValue(CONFIG::NICK_ID    , var(String("[mr-cooldude]" ))) ;
+  AvCaster::SetValue(CONFIG::CHANNEL_ID , var(String("#av-caster"    ))) ;
+//   AvCaster::SetValue(CONFIG::NETWORK_ID , var(String("localhost"     ))) ;
+//   AvCaster::SetValue(CONFIG::NICK_ID    , var(String("bill-auger"    ))) ;
+//   AvCaster::SetValue(CONFIG::CHANNEL_ID , var(String("#mychat"       ))) ;
+  AvCaster::StorePreset(AvCaster::GetPresetName()) ;
+#  endif // SEED_IRC_NETWORKS
+}
+
+#  define DEBUG_SEED_IRC_NETWORKS SeedIrcNetworks() ;
 
 
 /* state */
@@ -91,52 +98,44 @@ StringArray DisabledFeatures()
 
 #  define DEBUG_TRACE_INIT_PHASE_2 Trace::TraceState("instantiating model") ;
 
-#  define DEBUG_TRACE_INIT_PHASE_3 Trace::TraceState("instantiating GUI") ;
+#  define DEBUG_TRACE_INIT_PHASE_3 Trace::TraceState("processing CLI params") ;
 
-#  define DEBUG_TRACE_INIT_PHASE_4                                               \
+#  define DEBUG_TRACE_INIT_PHASE_4 Trace::TraceState("instantiating GUI") ;
+
+#  define DEBUG_TRACE_INIT_PHASE_5                                               \
   Trace::TraceState((IsMediaEnabled) ? "instantiating media" : "media disabled") ;
 
-#  define DEBUG_TRACE_INIT_PHASE_5                                            \
+#  define DEBUG_TRACE_INIT_PHASE_6                                            \
   Trace::TraceState((IsChatEnabled) ? "instantiating chat" : "chat disabled") ;
 
-#  define DEBUG_TRACE_INIT_PHASE_6 Trace::TraceState("finalizing initialization") ;
+#  define DEBUG_TRACE_INIT_PHASE_7 Trace::TraceState("finalizing initialization") ;
 
-#  define DEBUG_TRACE_INIT_PHASE_7 Trace::TraceState("AvCaster ready") ;
+#  define DEBUG_TRACE_INIT_PHASE_8 Trace::TraceState("AvCaster ready") ;
 
-#  define DEBUG_TRACE_HANDLE_CLI_PARAMS_TERMINATING String token ;                      \
-  if      (CliParams.contains(APP::CLI_HELP_TOKEN   )) token = APP::CLI_HELP_TOKEN ;    \
-  else if (CliParams.contains(APP::CLI_PRESETS_TOKEN)) token = APP::CLI_PRESETS_TOKEN ; \
-  else if (CliParams.contains(APP::CLI_VERSION_TOKEN)) token = APP::CLI_VERSION_TOKEN ; \
+#  define DEBUG_TRACE_HANDLE_CLI_PARAMS String token ;                                   \
+  if      (cli_params.contains(APP::CLI_HELP_TOKEN   )) token = APP::CLI_HELP_TOKEN ;    \
+  else if (cli_params.contains(APP::CLI_PRESETS_TOKEN)) token = APP::CLI_PRESETS_TOKEN ; \
+  else if (cli_params.contains(APP::CLI_VERSION_TOKEN)) token = APP::CLI_VERSION_TOKEN ; \
   if (token.isNotEmpty()) Trace::TraceConfig("found terminating cli token " + token)    ;
 
-#  define DEBUG_TRACE_HANDLE_CLI_PARAMS StringArray tokens ;                   \
-  for (String* token = CliParams.begin() ; token != CliParams.end() ; ++token) \
-    if (*token == APP::CLI_PRESET_TOKEN          ||                            \
-        *token == APP::CLI_DISABLE_MEDIA_TOKEN   ||                            \
-        *token == APP::CLI_SCREEN_ONLY_TOKEN     ||                            \
-        *token == APP::CLI_CAMERA_ONLY_TOKEN     ||                            \
-/*        *token == APP::CLI_TEXT_ONLY_TOKEN       ||                            */\
-/*        *token == APP::CLI_IMAGE_ONLY_TOKEN      ||                            */\
-        *token == APP::CLI_DISABLE_PREVIEW_TOKEN ||                            \
-        *token == APP::CLI_DISABLE_AUDIO_TOKEN   ||                            \
-        *token == APP::CLI_DISABLE_CHAT_TOKEN     ) tokens.add(*token) ;       \
-  String dbg = tokens.joinIntoString(",") ;                                    \
-  if (tokens.size()) Trace::TraceConfig("found pre-init cli tokens " + dbg)    ;
-
-#  define DUMP_DEBUG_MEDIA_SWITCHES                                                        \
-  Trace::TraceVerbose("CliParams="                    + CliParams.joinIntoString(",")    + \
-                      "\n\tAPP::N_COMPOSITOR_INPUTS=" + String(APP::N_COMPOSITOR_INPUTS) + \
-                      "\n\tn_video_inputs="           + String(n_video_inputs          ) + \
-                      "\n\tIsMediaEnabled="           + String(IsMediaEnabled          ) + \
-                      "\n\tis_screen_enabled="        + String(is_screen_enabled       ) + \
-                      "\n\tis_camera_enabled="        + String(is_camera_enabled       ) + \
-                      "\n\tis_text_enabled="          + String(is_text_enabled         ) + \
-                      "\n\tis_image_enabled="         + String(is_image_enabled        ) + \
-                      "\n\tis_compositor_enabled="    + String(is_compositor_enabled   ) + \
-                      "\n\tis_preview_enabled="       + String(is_preview_enabled      ) + \
-                      "\n\tis_audio_enabled="         + String(is_audio_enabled        ) + \
-                      "\n\tIsChatEnabled="            + String(IsChatEnabled           ) + \
-                      "\n\tis_sane="                  + String(is_sane                 ) ) ;
+#  define DEBUG_TRACE_PROCESS_CLI_PARAMS StringArray handled_tokens , unhandled_tokens ;        \
+  for (String* token = cli_params.begin() ; token != cli_params.end() ; ++token)                \
+    if (*token == APP::CLI_PRESET_TOKEN          ||                                             \
+        *token == APP::CLI_DISABLE_MEDIA_TOKEN   ||                                             \
+        *token == APP::CLI_SCREEN_ONLY_TOKEN     ||                                             \
+        *token == APP::CLI_CAMERA_ONLY_TOKEN     ||                                             \
+        *token == APP::CLI_TEXT_ONLY_TOKEN       ||                                             \
+        *token == APP::CLI_IMAGE_ONLY_TOKEN      ||                                             \
+        *token == APP::CLI_DISABLE_PREVIEW_TOKEN ||                                             \
+        *token == APP::CLI_DISABLE_AUDIO_TOKEN   ||                                             \
+        *token == APP::CLI_DISABLE_CHAT_TOKEN     )                                             \
+         handled_tokens.add(*token) ;                                                           \
+    else unhandled_tokens.add(*token) ;                                                         \
+  if (handled_tokens  .size()) Trace::TraceConfig("found pre-init cli tokens [ "            +   \
+                                                  handled_tokens  .joinIntoString(",") + "]") ; \
+  if (unhandled_tokens.size()) Trace::TraceConfig("found unknown cli tokens  [ "            +   \
+                                                  unhandled_tokens.joinIntoString(",") + "]") ; \
+  Trace::TraceConfigVb("dumping cli_params => [" + cli_params     .joinIntoString(",") + "]")   ;
 
 #  define DEBUG_TRACE_VALIDATE_ENVIRONMENT                                                          \
   bool is_err = false ; String dbg = "" ;                                                           \
@@ -144,6 +143,7 @@ StringArray DisabledFeatures()
   if (!is_sufficient_irc_version) { is_err = true ; dbg += " insufficient libircclient version" ; } \
   if (!is_valid_home_dir        ) { is_err = true ; dbg += " invlaid HOME_DIR" ;                  } \
   if (!is_valid_appdata_dir     ) { is_err = true ; dbg += " invlaid APPDATA_DIR" ;               } \
+  if (!is_valid_pictures_dir    ) { is_err = true ; dbg += " invlaid PICTURES_DIR" ;              } \
   if (!is_valid_videos_dir      ) { is_err = true ; dbg += " invlaid VIDEOS_DIR" ;                } \
   if (is_err) Trace::TraceError(dbg) ; else Trace::TraceState("environment is sane")                ;
 
@@ -162,34 +162,34 @@ StringArray DisabledFeatures()
 
 /* config */
 
-#  define DEBUG_TRACE_GUI_SET_CONFIG                                          \
-  String    key        = (a_key.isValid()) ? String(a_key) : String("NULL") ; \
-  ValueTree node       = Store->getKeyNode(a_key) ;                           \
-  String    change_msg = "key '"             + key                 +          \
-                         "' changing from '" + STRING(node[a_key]) +          \
-                         "' to '"            + STRING(a_value    ) + "'" ;    \
-  Trace::TraceGui("gui " + change_msg) ;
-
-#  define DEBUG_TRACE_REJECT_CONFIG_CHANGE                                           \
-  if (is_output_on) Trace::TraceConfig("rejecting config change - output is active") ;
-
-#  define DEBUG_TRACE_HANDLE_PRESETCOMBO                                              \
-  String pad = "\n                                       " ;                          \
-  Trace::TraceVerbose(String("Controls::handlePresetCombo()")         +               \
-           " preset_name          = '" + preset_name        + "'"     +               \
-      pad + "stored_preset_name   = '" + stored_preset_name + "'"     +               \
-      pad + "option_n             = "  + String(option_n            ) +               \
-      pad + "stored_option_n      = "  + String(stored_option_n     ) +               \
-      pad + "is_valid_option      = "  + String(is_valid_option     ) +               \
-      pad + "is_empty             = "  + String(is_empty            ) +               \
-      pad + "has_name_changed     = "  + String(has_name_changed    ) +               \
-      pad + "should_rename_preset = "  + String(should_rename_preset) +               \
-      pad + "should_reset_option  = "  + String(should_reset_option ) ) ;             \
-  Trace::TraceGui(String("presetsCombo selection changed - ")                       + \
-                  ((!is_valid_option && is_empty) ? "rejecting empty preset name" :   \
-                  (should_rename_preset         ) ? "renaming preset"             :   \
-                  (should_reset_option          ) ? "resetting selection"         :   \
-                                                    "accepting change"            ) ) ;
+#  define DEBUG_TRACE_HANDLE_CONFIG_CHANGE                                                  \
+  String handled                   = ((!should_reconfigure_media) ? "not " : "") ;          \
+  bool   was_preset_combo_changed  = a_key == CONFIG::PRESET_ID ;                           \
+  bool   was_config_button_pressed = a_key == CONFIG::IS_PENDING_ID ;                       \
+  bool   is_swapping_presets       = was_preset_combo_changed  && !is_config_pending ;      \
+  bool   is_entering_config_mode   = was_config_button_pressed &&  is_config_pending ;      \
+  bool   is_exiting_config_mode    = was_config_button_pressed && !is_config_pending ;      \
+  bool   should_logout_chat        = is_preset_control         &&  is_config_pending ;      \
+  String chat_state                = (should_login_chat) ? "into" : "out of" ;              \
+  String pad                       = "\n              " ;                                   \
+  Trace::TraceConfigVb(handled + "handling config value change '" + STRING(a_key) + "'" +   \
+      pad + "is_media_toggle          = " + String(is_media_toggle         )            +   \
+      pad + "is_preset_control        = " + String(is_preset_control       )            +   \
+      pad + "is_stream_active         = " + String(is_stream_active        )            +   \
+      pad + "is_config_pending        = " + String(is_config_pending       )            +   \
+      pad + "should_stop_stream       = " + String(should_stop_stream      )            +   \
+      pad + "should_reconfigure_media = " + String(should_reconfigure_media)            +   \
+      pad + "should_reconfigure_chat  = " + String(should_reconfigure_chat )            +   \
+      pad + "is_swapping_presets      = " + String(is_swapping_presets     )            +   \
+      pad + "is_entering_config_mode  = " + String(is_entering_config_mode )            +   \
+      pad + "is_exiting_config_mode   = " + String(is_exiting_config_mode  )            +   \
+      pad + "should_logout_chat       = " + String(should_logout_chat      )            +   \
+      pad + "should_login_chat        = " + String(should_login_chat       )            ) ; \
+  if (is_swapping_presets    ) Trace::TraceConfig("swapping presets"    ) ;                 \
+  if (is_entering_config_mode) Trace::TraceConfig("entering config mode") ;                 \
+  if (is_exiting_config_mode ) Trace::TraceConfig("exitng config mode"  ) ;                 \
+  if (should_reconfigure_chat) Trace::TraceConfig("logging " + chat_state + " chat" +       \
+                                                  ((!IsChatEnabled) ? " (disabled)" : ""))  ;
 
 
 /* helpers */
@@ -200,26 +200,25 @@ StringArray DisabledFeatures()
 
 #else // DEBUG_TRACE
 
-#  define DEBUG_DISABLE_FEATURES                    ;
-#  define DEBUG_TRACE_INIT_PHASE_1                  ;
-#  define DEBUG_TRACE_INIT_PHASE_2                  ;
-#  define DEBUG_TRACE_INIT_PHASE_3                  ;
-#  define DEBUG_TRACE_INIT_PHASE_4                  ;
-#  define DEBUG_TRACE_INIT_PHASE_5                  ;
-#  define DEBUG_TRACE_INIT_PHASE_6                  ;
-#  define DEBUG_TRACE_INIT_PHASE_7                  ;
-#  define DEBUG_TRACE_HANDLE_CLI_PARAMS_TERMINATING ;
-#  define DEBUG_TRACE_HANDLE_CLI_PARAMS             ;
-#  define DUMP_DEBUG_MEDIA_SWITCHES                 ;
-#  define DEBUG_TRACE_VALIDATE_ENVIRONMENT          ;
-#  define DEBUG_TRACE_REFRESH_GUI                   ;
-#  define DEBUG_TRACE_SHUTDOWN_PHASE_1              ;
-#  define DEBUG_TRACE_SHUTDOWN_PHASE_2              ;
-#  define DEBUG_TRACE_SHUTDOWN_PHASE_3              ;
-#  define DEBUG_TRACE_SET_CONFIG                    ;
-#  define DEBUG_TRACE_REJECT_CONFIG_CHANGE          ;
-#  define DEBUG_TRACE_HANDLE_PRESETCOMBO            ;
-#  define DEBUG_TRACE_DISPLAY_ALERT                 ;
+#  define DEBUG_DISABLE_FEATURES           ;
+#  define DEBUG_SEED_IRC_NETWORKS          ;
+#  define DEBUG_TRACE_INIT_PHASE_1         ;
+#  define DEBUG_TRACE_INIT_PHASE_2         ;
+#  define DEBUG_TRACE_INIT_PHASE_3         ;
+#  define DEBUG_TRACE_INIT_PHASE_4         ;
+#  define DEBUG_TRACE_INIT_PHASE_5         ;
+#  define DEBUG_TRACE_INIT_PHASE_6         ;
+#  define DEBUG_TRACE_INIT_PHASE_7         ;
+#  define DEBUG_TRACE_INIT_PHASE_8         ;
+#  define DEBUG_TRACE_HANDLE_CLI_PARAMS    ;
+#  define DEBUG_TRACE_PROCESS_CLI_PARAMS   ;
+#  define DEBUG_TRACE_VALIDATE_ENVIRONMENT ;
+#  define DEBUG_TRACE_REFRESH_GUI          ;
+#  define DEBUG_TRACE_SHUTDOWN_PHASE_1     ;
+#  define DEBUG_TRACE_SHUTDOWN_PHASE_2     ;
+#  define DEBUG_TRACE_SHUTDOWN_PHASE_3     ;
+#  define DEBUG_TRACE_HANDLE_CONFIG_CHANGE ;
+#  define DEBUG_TRACE_DISPLAY_ALERT        ;
 
 #endif // DEBUG_TRACE
 #endif // _TRACEAVCASTER_H_

@@ -4,21 +4,21 @@
 |*|  This file is part of the AvCaster program.
 |*|
 |*|  AvCaster is free software: you can redistribute it and/or modify
-|*|  it under the terms of the GNU Lesser General Public License version 3
+|*|  it under the terms of the GNU General Public License version 3
 |*|  as published by the Free Software Foundation.
 |*|
 |*|  AvCaster is distributed in the hope that it will be useful,
 |*|  but WITHOUT ANY WARRANTY; without even the implied warranty of
 |*|  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-|*|  GNU Lesser General Public License for more details.
+|*|  GNU General Public License for more details.
 |*|
-|*|  You should have received a copy of the GNU Lesser General Public License
+|*|  You should have received a copy of the GNU General Public License
 |*|  along with AvCaster.  If not, see <http://www.gnu.org/licenses/>.
 \*/
 
 
-#include "AvCaster.h"
-#include "./Trace/TraceMain.h"
+#include "Controllers/AvCaster.h"
+#include "Trace/TraceMain.h"
 
 
 class AvCasterApplication : public JUCEApplication , public MultiTimer
@@ -36,14 +36,17 @@ DEBUG_TRACE_INIT_VERSION
     if (AvCaster::Initialize(this , this->mainWindow->mainContent))
     {
 #ifdef JUCE_LINUX
-      if (APP::DESKTOP_FILE.loadFileAsString() != APP::DESKTOP_TEXT)
-        APP::DESKTOP_FILE.replaceWithText(APP::DESKTOP_TEXT) ;
-      if (APP::ICON_FILE.getSize() != APP::LOGO_FILE.getSize())
+      // create desktop launch file
+      if (APP::desktopFile().loadFileAsString() != APP::desktopText())
+        APP::desktopFile().replaceWithText(APP::desktopText()) ;
+
+      // create desktop icon
+      if (APP::iconFile().getSize() != APP::logoFile().getSize())
       {
         PNGImageFormat    image_format = PNGImageFormat() ;
-        Image             icon_image   = ImageCache::getFromMemory(BinaryData::avcaster_png    ,
-                                                                   BinaryData::avcaster_pngSize) ;
-        FileOutputStream* icon_stream  = new FileOutputStream(APP::ICON_FILE) ;
+        Image             icon_image   = ImageCache::getFromMemory(BinaryData::avcasterlogo48_png    ,
+                                                                   BinaryData::avcasterlogo48_pngSize) ;
+        FileOutputStream* icon_stream  = new FileOutputStream(APP::iconFile()) ;
         if (!icon_stream->failedToOpen())
           image_format.writeImageToStream(icon_image , *icon_stream) ;
         delete icon_stream ;
@@ -60,8 +63,12 @@ DEBUG_TRACE_INIT_VERSION
 
   void startTimers()
   {
+#ifndef DEBUG_QUIT_BEFORE_MAIN_LOOP
     for (int timer_n = 0 ; timer_n < APP::N_TIMERS ; ++timer_n)
       startTimer(APP::TIMER_IDS[timer_n] , APP::TIMER_IVLS[timer_n]) ;
+#else // DEBUG_QUIT_BEFORE_MAIN_LOOP
+    Trace::TraceEvent("forced quit") ; shutdown() ; quit() ;
+#endif // DEBUG_QUIT_BEFORE_MAIN_LOOP
   }
 
   void stopTimers()
@@ -73,6 +80,7 @@ DEBUG_TRACE_INIT_VERSION
   void shutdown() override
   {
 DEBUG_TRACE_SHUTDOWN_IN
+
     stopTimers() ;
     AvCaster::Shutdown() ;
 
@@ -108,21 +116,19 @@ DEBUG_TRACE_SHUTDOWN_OUT
       setContentOwned(this->mainContent , true) ;
 
       // this main desktop window
-      // TODO: load from BinaryData
-      setUsingNativeTitleBar(false) ;
-      setResizable(true , false) ;
-      Image icon_image = ImageCache::getFromMemory(BinaryData::avcaster_png    ,
-                                                   BinaryData::avcaster_pngSize) ;
+      Image icon_image = ImageCache::getFromMemory(BinaryData::avcasterlogo48_png    ,
+                                                   BinaryData::avcasterlogo48_pngSize) ;
       setIcon(icon_image) ; getPeer()->setIcon(icon_image) ;
 #ifdef TRAY_ICON
         this->mainContent->trayIcon->setIconImage(icon_image) ;
 #endif // TRAY_ICON
-
+      setUsingNativeTitleBar(false) ;
 #ifdef JUCE_MAC
       setTitleBarButtonsRequired(DocumentWindow::allButtons , true) ;
 #endif // JUCE_MAC
       setTitleBarHeight(GUI::TITLEBAR_H) ;
       centreWithSize(getWidth() , getHeight()) ;
+//       setResizable(true , false) ; // TODO: resizeable preview ?
       setVisible(true) ;
     }
 
@@ -151,15 +157,15 @@ DEBUG_TRACE_SHUTDOWN_OUT
 
 private:
 
-#ifndef DEBUG_QUIT_IMMEDIATELY
+#ifndef DEBUG_QUIT_AFTER_MAIN_LOOP
   void timerCallback(int timer_id) override { AvCaster::HandleTimer(timer_id) ; }
-#else // DEBUG_QUIT_IMMEDIATELY
+#else // DEBUG_QUIT_AFTER_MAIN_LOOP
   void timerCallback(int timer_id) override
   {
     if (timer_id != APP::TIMER_LO_ID) AvCaster::HandleTimer(timer_id) ;
     else                              { Trace::TraceEvent("forced quit") ; quit() ; }
   }
-#endif // DEBUG_QUIT_IMMEDIATELY
+#endif // DEBUG_QUIT_AFTER_MAIN_LOOP
 
   ScopedPointer<MainWindow> mainWindow ;
 } ;

@@ -4,6 +4,12 @@ sudo:     required
 dist:     trusty
 group:    edge
 
+git:
+  depth: 1
+
+branches:
+  except: master
+
 notifications:
   email: false
   irc:
@@ -12,8 +18,7 @@ notifications:
     on_failure: always
     on_start:   never
   webhooks:
-    urls:
-      - https://webhooks.gitter.im/e/1fcf27221a4243f787d8
+    urls: https://webhooks.gitter.im/e/1fcf27221a4243f787d8
     on_success: always
     on_failure: always
     on_start:   never
@@ -21,7 +26,7 @@ notifications:
 before_install:
   - PROJECT_NAME='av-caster'
   - DEPS='libfreetype6-dev libgstreamer-plugins-base1.0-dev libx11-dev
-          libxcursor-dev libxinerama-dev'
+          libxcursor-dev libxinerama-dev libxrandr-dev'
   - # the trusty version of libircclient is incompatible
   - LIBIRCCLIENT_MIRROR="http://mirrors.kernel.org/ubuntu/pool/universe/libi/libircclient"
   - LIBIRCCLIENT="libircclient1_1.8-2_amd64.deb"
@@ -37,11 +42,7 @@ script:
   - wget $LIBIRCCLIENT_MIRROR/$LIBIRCCLIENTDEV
   - sudo dpkg -i $LIBIRCCLIENT
   - sudo dpkg -i $LIBIRCCLIENTDEV
-  - mkdir libircclient
-  - cp /usr/include/libirc* libircclient/
-  - sudo mv libircclient/ /usr/include/
-  - make CONFIG=Release # TARGET_ARCH='-march=x86-64'
-  - # $BUILD_DIR/build/$PROJECT_NAME --version
+  - CFLAGS="-Wno-dangling-else -Wno-deprecated-register" make
 
 after_script:
   - echo "build stage ended"

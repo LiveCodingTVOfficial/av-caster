@@ -1,51 +1,81 @@
-### Disclaimer
+### AvCaster Contribution Guidelines
 
-AvCaster source code and assets are distributed under the terms of the GNU Lesser General Public License version 3.
-As a contributor, you agree that all contributions to the source tree, wiki, and issue tracker will automatically fall under the same licence as AvCaster.
-In short, this means that you allow others to copy, distribute, and modify their copies or your work as long as they extend this priviledge to others and credit you as the original author if they distribute.
-If you are not the original sole author of your contributions, they must be distributable under some GPL-compatible license such as Creative Commonns and you must clearly give attribution to the copyright holder with a hyperlink to the original source.
-Any contributions that are under the terms of a GPL-compatible license will retain their current license.
-Any contributions that are under the terms of a GPL-incompatible license will not be accepted.
+AvCaster source code and assets are distributed as [free software](https://www.gnu.org/philosophy/free-sw.html) and [free culture](http://freedomdefined.org/Definition).  This agreement is not a copyright assignment.  It's function is merely to ensure that AvCaster remains free.
+
+In short, this means that as a contributor, you allow others to copy, distribute, and modify their copies or your work; provided that they extend this priviledge to others and credit you as the original author.  This implies that all source materials are made available in their preferred form for modification; so for multimedia, this is all individual source files and/or editor project files in addition to the "mixed-down" binary artifacts.  Refer to the Terms below for details.
+
+
+### Contributor License Agreement Terms
+As a contributor, you agree that all contributions to the source tree, wiki, and issue tracker that are unlicensed and not in the public domain will automatically fall under the same appropriate licence as AvCaster: [GPLv3](COPYING.md) for source code, [GNU-FDLv1.3](Documentation/README.md) for documentation, and [GPLv3](Assets/README.md) for multimedia and other binaries (such as audio, video, and images).
+
+For multimedia and other binaries, the "sources" or "preferred form" as relating to the GPL
+is explicitly defined to be any and all binary data, meta-data, editor project files, scripts, and source code of custom executables that are necessary to accomplish all of the following using only widely-available free software:
+* regenerate the associated target artifacts completely and accurately
+* modify these "preferred form" decomposed sources directly and individually
+* compose the original and modified sources
+* generate equivalent modified versions of the associated target artifacts
+
+For example:
+* "target artifact" such as a composed (mixed-down) .png, .svg, .wav, etc (these are typically all that is covered by a Crerative Commons licencse)
+* "binary data" such as the individual elements that compose the "target artifact" (images, sound tracks, etc.)
+* "editor project files" such as .xcf, .psd, .aup, .ardour, etc.
+* "meta-data", "scripts", and "source code of custom executables" such as 3D models, openGL shaders, etc.
+* "widely-available free software" such as GIMP, Inkscape, Audacity, Ardour, etc.
+
+If you are not the sole author of your contribution (i.e. it is a combined or derivative work incorporating or based on someone else's work), then all source works must be freely copyable (either public domain or distributable under the terms of some [GPL-compatible license](https://www.gnu.org/licenses/license-list.html#GPLCompatibleLicenses) such as Creative Commonns) and you must clearly give attribution to the copyright holders with hyperlinks to the original sources and licenses.
+
+Contributions that do not meet the above criteria will not be accepted and will probably be deleted.
 
 
 ### Developers
-You will find in the Builds/Scripts directory some helper scripts to aid in building and debugging this application. Simply run ```./Builds/Scripts/setup-build-helpers``` to install them. Note that we are currently locked at JUCE v3.1.1 until [an issue affecting scaled monitor resolutions](http://www.juce.com/forum/topic/juce-v320-and-v401-apps-window-not-visible-scaled-monitor-resolutions) is resolved. This is not relevant to most development tasks, but if you must use the Introjucer GUI builder for design or project maintenance, please compile it from [this branch](https://github.com/bill-auger/JUCE/tree/v3-1-1) and note that he av-caster and JUCE-3-1-1 directories should be siblings in order for the AvCaster.jucer project to locate the JUCE sources.
+
+You will find in the Builds/Scripts directory some helper scripts to aid in building and debugging this application with gcc and gdb.
+
+Simply run ```./Builds/Scripts/setup-build-helpers``` to install them to the av-caster root directory. See Builds/Scripts/README.md for usage.
+
+Generally speaking, the files under the Builds/ directory are not to be modified manually nor should any reconfiguration be done from within an IDE.
+
+This is sometimes necessary for experimentation but note that these changes will not persist.
+
+Inevitably, all project configuration must be done using the Projucer project manager because the important files in all of the Builds/ directories are clobbered by the Projucer on each save.
+
+In short, it is almost always the case that files under the Builds/ directory that are committed to version control are only those generated by Projucer and otherwise unmodified.
+
+This is not relevant to most development tasks, but if you must use the Projucer for design or project maintenance, please compile it from the 'gnu-jucer' branch as described in the 'Designers' section below.
 
 
 ### Designers
+
 ```bash
 ### If you want to work with the AvCaster sources directly -
         first install the build dependencies above for your system
             as noted in the README.md
         then fork the AvCaster repo, clone the design branch,
             and compile as noted in the README.md
-        then clone and compile the Introjucer GUI builder and project manager ###
-
+        then clone and compile the Projucer GUI builder and project manager ###
 ### Clone the design branch locally ###
+$ cd YOUR_DEV_DIR
 $ git clone -b design https://github.com/YOUR_GITHUB_NICK/av-caster
 ### then compile AvCaster as noted in the README.md ###
 
-### Compile the Introjucer GUI builder and project manager ###
-$ git clone -b v3-1-1 --depth 1 https://github.com/bill-auger/JUCE.git JUCE-3-1-1
-### or ###
-$ wget https://github.com/bill-auger/JUCE/archive/v3-1-1.tar.gz
-$ tar xzf ./v3-1-1.tar.gz
-### then ###
-$ cd ./JUCE-3-1-1/extras/Introjucer/Builds/Linux/
+### Compile the Projucer GUI builder and project manager ###
+$ cd YOUR_DEV_DIR
+$ git clone -b gnu-jucer --depth 1 https://github.com/bill-auger/JUCE.git juce
+$ cd juce/extras/Projucer/Builds/LinuxMakefile/
 $ make
-$ ./build/Introjucer
-### then select "Open" from the Introjucer "File" menu and browse to the AvCaster.jucer file in this project root directory. ###
+$ ./build/Projucer ../../../../../av-caster/AvCaster.jucer
 ```
 
 
-### Pull requests
-* Developers: please issue pull requests against the development branch.
-* Designers: please issue pull requests against the design branch.
+### Pull Requests
 
-Note that branches other than 'master' tend to be rebased often so you may need to force pull those.  Please rebase all pull requests on/into the latest development HEAD.  Ideally, all branches should be a fast-foreward from master so re-sync should be simple. If you repo becomes out of sync with upstream, please re-sync or rebase before issuing a pull request. Also, please squash trivial commits but try to retain significant notable commits (see example below).
+* Developers: please issue pull requests against the [upstream 'development' branch: https://github.com/bill-auger/av-caster](https://github.com/bill-auger/av-caster/tree/development).
+* Designers: please issue pull requests against the [upstream 'design' branch: https://github.com/bill-auger/av-caster](https://github.com/bill-auger/av-caster/tree/design).
+
+Note that branches other than 'master' tend to be rebased often so you may need to force pull those.  Please rebase all pull requests on/into the latest development or design HEAD and squash trivial commits but try to retain significant notable commits (see example below).  Ideally in this way, all upstream branches should be a fast-foreward from master and so re-sync should be simple.
 
 
-### commit messages
+### Commit Messages
 
 Please add commit messages of the following form:
 ```
@@ -68,4 +98,5 @@ add bar powers to the mighty foo (issue #42)
 
 
 ### Issue Tracker
-Please do not hesitate to use the issue tracker for constructive notes related to that specific issue and significant progress updates that are not yet in a pull request; but use the gitter chat or other channels for new issues and lengthy discussions.
+
+Please do not hesitate to use the issue tracker for bug reports or constructive notes related to that specific issue and significant progress updates that are not yet in a pull request; but use the gitter chat or other channels for other issues and lengthy discussions.

@@ -16,21 +16,30 @@
 #
 
 Name:          av-caster
-Version:       0.15.201
+Version:       0.16.004
 Release:       1%{?dist}
-Summary:       A simple native gStreamer GUI for screencast, webcam, and audio streaming
-License:       LGPL-3.0
+Summary:       A light-weight native gStreamer GUI for screencast, webcam, and audio streaming
+License:       GPL-3.0
 URL:           https://github.com/bill-auger/%{name}/
 Source0:       https://github.com/bill-auger/%{name}/archive/v%{version}.tar.gz
-BuildRequires: freetype2-devel gcc-c++ libX11-devel libXinerama-devel libXcursor-devel
+BuildRequires: gcc-c++ libircclient-devel libX11-devel libXcursor-devel libXinerama-devel libXrandr-devel
 %if 0%{?sles_version} || 0%{?suse_version}
-BuildRequires: gstreamer-plugins-base-devel
-Requires:      gstreamer-plugins-good gstreamer-plugins-bad gstreamer-plugins-ugly
+BuildRequires: freetype2-devel gstreamer-plugins-base-devel update-desktop-files
+Requires:      gstreamer-plugins-good gstreamer-plugins-bad gstreamer-plugins-ugly libircclient1
 %endif
 %if 0%{?centos_version} || 0%{?fedora_version} || 0%{?rhel_version}
-BuildRequires: gstreamer1-plugins-base-devel
-Requires:      gstreamer1-plugins-good gstreamer1-plugins-bad-free gstreamer1-plugins-ugly
+BuildRequires: freetype-devel gstreamer1-plugins-base-devel
+Requires:      gstreamer1-plugins-good gstreamer1-plugins-bad-free gstreamer1-plugins-ugly libircclient
 %endif
+
+
+%define package_bin_dir   %{buildroot}%{_bindir}
+%define package_apps_dir  %{buildroot}%_datadir/applications/
+%define package_icons_dir %{buildroot}%_datadir/icons/hicolor/48x48/apps/
+%define binary_artefact   Builds/Makefile/build/%{name}
+%define desktop_file      Assets/%{name}.desktop
+%define icon_file         Assets/avcaster-logo-48.png
+
 
 %description
   AvCaster is a native GNU/Linux application built with the JUCE framework
@@ -49,7 +58,11 @@ make %{?_smp_mflags} CONFIG=Release
 
 %install
 mkdir -p %{buildroot}%{_bindir}
-mv Builds/Makefile/build/%{name} %{buildroot}%{_bindir}/
+# mkdir -p %package_apps_dir
+# mkdir -p %package_icons_dir
+mv       %binary_artefact %package_bin_dir/
+# mv       %desktop_file    %package_apps_dir/
+# mv       %icon_file       %package_icons_dir/
 
 %files
 %doc
@@ -66,5 +79,5 @@ mv Builds/Makefile/build/%{name} %{buildroot}%{_bindir}/
 %endif
 
 %changelog
-* Sat Dec 19 2015 bill-auger
-- v0.15.201
+* Wed Sep 14 2016 bill-auger
+- v0.16.004
